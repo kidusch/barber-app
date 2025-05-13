@@ -22,17 +22,22 @@ export const HomeScreen = () => {
       setLoading(true);
       setError(null);
       try {
+        console.log('Fetching services...');
         const api = new ApiService();
         const response = await api.getServices();
         // The backend returns { services: [...] } or just an array
         if (Array.isArray(response)) {
           setServices(response);
+          console.log('Set services (array):', response);
         } else if (response && Array.isArray(response.services)) {
           setServices(response.services);
+          console.log('Set services (object):', response.services);
         } else {
           setServices([]);
+          console.log('Set empty services:', response);
         }
       } catch (err: any) {
+        console.error('Service fetch error:', err);
         setError('Failed to fetch services');
       } finally {
         setLoading(false);
@@ -63,29 +68,21 @@ export const HomeScreen = () => {
         ) : error ? (
           <Text style={{ color: 'red' }}>{error}</Text>
         ) : (
-          services.map((service) => (
-            <TouchableOpacity
-              key={service.id}
-              style={styles.serviceCard}
-              onPress={() => handleServicePress(service)}
-            >
-              <View style={styles.serviceIconContainer}>
-                <Text style={styles.serviceIcon}>{service.icon || '✂️'}</Text>
-              </View>
-              <View style={styles.serviceInfo}>
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <Text style={styles.serviceDescription}>{service.description}</Text>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.priceText}>
-                    Price: {service.price} CHF
-                  </Text>
-                  <Text style={styles.priceText}>
-                    Duration: {service.duration} min
-                  </Text>
+          <View style={styles.servicesGrid}>
+            {services.map((service) => (
+              <TouchableOpacity
+                key={service.id}
+                style={styles.serviceCard}
+                onPress={() => handleServicePress(service)}
+                activeOpacity={0.85}
+              >
+                <View style={styles.serviceIconContainer}>
+                  <Text style={styles.serviceIcon}>{service.icon || '💈'}</Text>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))
+                <Text style={styles.serviceName}>{service.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
       </View>
     </ScrollView>
@@ -123,54 +120,41 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SPACING.lg,
   },
-  serviceCard: {
+  servicesGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  serviceCard: {
+    alignItems: 'center',
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.lg,
-    padding: SPACING.lg,
-    marginBottom: SPACING.md,
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.lg,
+    width: '48%',
     shadowColor: COLORS.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   serviceIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: BORDER_RADIUS.md,
-    backgroundColor: COLORS.primary + '10',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: COLORS.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   serviceIcon: {
-    fontSize: FONT_SIZE.xxl,
-  },
-  serviceInfo: {
-    flex: 1,
+    fontSize: 36,
   },
   serviceName: {
     fontSize: FONT_SIZE.lg,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-  },
-  serviceDescription: {
-    fontSize: FONT_SIZE.md,
-    color: COLORS.textLight,
-    marginBottom: SPACING.sm,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  priceText: {
-    fontSize: FONT_SIZE.md,
+    fontWeight: '700',
     color: COLORS.primary,
-    fontWeight: '500',
+    textAlign: 'center',
   },
 }); 

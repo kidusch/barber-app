@@ -1,6 +1,8 @@
 export interface User {
   id: string;
-  name: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phoneNumber: string;
   role: 'client' | 'barber' | 'admin';
@@ -34,7 +36,8 @@ export interface Appointment {
   clientId: string;
   barberId: string;
   serviceId: string;
-  date: string; // ISO date string
+  startTime: string; // ISO date string
+  endTime: string;   // ISO date string
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   notes?: string;
 }

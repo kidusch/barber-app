@@ -6,13 +6,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useApp } from '../context/AppContext';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS } from '../constants/theme';
-import { RootState } from '../store';
-import { logout } from '../store/authSlice';
 import { Button } from '../components/Button';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types/navigation';
 
 type MenuItem = {
   id: string;
@@ -22,25 +25,22 @@ type MenuItem = {
 };
 
 export const ProfileScreen = () => {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, logout } = useApp();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  React.useEffect(() => {
+    if (!user) {
+      navigation.navigate('Auth');
+    }
+  }, [user, navigation]);
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => {
-            dispatch(logout());
-          },
-        },
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Déconnexion', style: 'destructive', onPress: () => logout() },
       ],
       { cancelable: true }
     );
@@ -51,13 +51,13 @@ export const ProfileScreen = () => {
       id: 'account',
       title: 'Mon compte',
       icon: 'person-outline',
-      onPress: () => {},
+      onPress: () => navigation.navigate('MonCompte'),
     },
     {
       id: 'appointments',
       title: 'Rendez-vous actifs',
       icon: 'calendar-outline',
-      onPress: () => {},
+      onPress: () => navigation.navigate('ActiveAppointments'),
     },
     {
       id: 'history',
@@ -85,12 +85,12 @@ export const ProfileScreen = () => {
         <View style={styles.userInfo}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {user?.firstName?.[0]?.toUpperCase() || ''}
-              {user?.lastName?.[0]?.toUpperCase() || ''}
+              {user?.name?.split(' ')[0]?.[0]?.toUpperCase() || ''}
+              {user?.name?.split(' ')[1]?.[0]?.toUpperCase() || ''}
             </Text>
           </View>
           <Text style={styles.name}>
-            {user?.firstName} {user?.lastName}
+            {user?.name}
           </Text>
           <Text style={styles.email}>{user?.email}</Text>
         </View>

@@ -12,8 +12,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS } from '../constants/theme';
-import type { RootStackScreenProps } from '../types/navigation';
+import type { RootStackScreenProps, RootStackParamList } from '../types/navigation';
 import { useApp } from '../context/AppContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute } from '@react-navigation/native';
 
 type Props = RootStackScreenProps<'Login'>;
 
@@ -21,6 +23,13 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login, loading, error } = useApp();
+  const route = useRoute();
+
+  // Extract redirect params if present
+  const { redirectTo, bookingParams } = (route.params || {}) as {
+    redirectTo?: keyof RootStackParamList;
+    bookingParams?: any;
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -29,8 +38,16 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
 
     try {
+      console.log('Attempting login with:', email);
       await login(email, password);
+      // After successful login, redirect if needed
+      if (redirectTo && bookingParams) {
+        navigation.replace(redirectTo, bookingParams);
+      } else {
+        navigation.navigate('Main');
+      }
     } catch (err) {
+      console.log('Login error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Please check your credentials';
       Alert.alert('Login Failed', errorMessage);
     }

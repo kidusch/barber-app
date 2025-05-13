@@ -6,14 +6,21 @@ export type AuthStackParamList = {
 };
 
 export type RootStackParamList = {
-  Auth: undefined;
+  Auth: {
+    screen?: keyof AuthStackParamList;
+    params?: any;
+  } | undefined;
   Login: undefined;
   Register: undefined;
-  Main: undefined;
+  Main: { screen?: keyof MainTabParamList } | undefined;
   BarberDetails: { barberId: string };
   ChooseBarber: { serviceId: string };
   ChooseTimeSlot: { serviceId: string; barberId: string };
   Booking: { serviceId: string; barberId: string; timeSlot: string };
+  BookingSummary: { serviceId: string; barberId: string; date: string; timeSlot: string };
+  MonCompte: undefined;
+  BookingSuccess: { service: { name: string; price: number }; barber: { firstName: string; lastName: string }; date: string; startTime: string; endTime: string };
+  ActiveAppointments: undefined;
 };
 
 export type MainTabParamList = {

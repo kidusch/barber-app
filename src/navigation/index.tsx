@@ -19,6 +19,10 @@ import { BookingScreen } from '../screens/BookingScreen';
 import SplashScreen from '../screens/SplashScreen';
 import { ChooseBarberScreen } from '../screens/ChooseBarberScreen';
 import { ChooseTimeSlotScreen } from '../screens/ChooseTimeSlotScreen';
+import { MonCompteScreen } from '../screens/MonCompteScreen';
+import BookingSummaryScreen from '../screens/BookingSummaryScreen';
+import BookingSuccessScreen from '../screens/BookingSuccessScreen';
+import ActiveAppointmentsScreen from '../screens/ActiveAppointmentsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -33,8 +37,9 @@ const MainNavigator = () => {
         tabBarStyle: {
           borderTopWidth: 1,
           borderTopColor: COLORS.border,
-          paddingBottom: 5,
-          paddingTop: 5,
+          paddingBottom: 20,
+          paddingTop: 10,
+          height: 70,
         },
         headerStyle: {
           backgroundColor: COLORS.primary,
@@ -48,15 +53,6 @@ const MainNavigator = () => {
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Appointments"
-        component={AppointmentsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
@@ -108,7 +104,11 @@ export const Navigation = () => {
       />
       <Stack.Screen name="ChooseBarber" component={ChooseBarberScreen} options={{ headerShown: true, title: 'Choose Barber' }} />
       <Stack.Screen name="ChooseTimeSlot" component={ChooseTimeSlotScreen} options={{ headerShown: true, title: 'Choose Time Slot' }} />
+      <Stack.Screen name="BookingSummary" component={BookingSummaryScreen} options={{ headerShown: true, title: 'Résumé de la réservation' }} />
+      <Stack.Screen name="BookingSuccess" component={BookingSuccessScreen} options={{ headerShown: true, title: 'Succès de la réservation', headerBackVisible: false }} />
+      <Stack.Screen name="ActiveAppointments" component={ActiveAppointmentsScreen} options={{ headerShown: true, title: 'Rendez-vous actifs' }} />
       <Stack.Screen name="Auth" component={AuthNavigator} />
+      <Stack.Screen name="MonCompte" component={MonCompteScreen} options={{ headerShown: true, title: 'Mon compte' }} />
     </Stack.Navigator>
   );
 }; 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types/navigation';
 import { Calendar } from 'react-native-calendars';
 import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS } from '../constants/theme';
 import { ApiService } from '../services/api';
@@ -30,11 +32,9 @@ function mockAvailability(slots: string[]) {
 }
 
 export const ChooseTimeSlotScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const { serviceId, barberId } = (route.params || {}) as { serviceId: string; barberId: string };
-  // Debug logging for params
-  console.log('ChooseTimeSlotScreen params:', { serviceId, barberId });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [serviceDuration, setServiceDuration] = useState<number | null>(null);
@@ -72,11 +72,10 @@ export const ChooseTimeSlotScreen: React.FC = () => {
         const API_BASE_URL =
           Platform.OS === 'android'
             ? 'http://10.0.2.2:8000'
-            : 'http://localhost:8000';
+            : 'http://192.168.1.181:8000';
         const dateStr = selectedDate.toISOString().split('T')[0];
-        const response = await fetch(
-          `${API_BASE_URL}/api/barbers/${barberId}/availability?serviceId=${serviceId}`
-        );
+        const url = `${API_BASE_URL}/api/barbers/${barberId}/availability?serviceId=${serviceId}`;
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch availability');
         const data = await response.json();
         const daySlots = data.availability[dateStr];
@@ -137,7 +136,12 @@ export const ChooseTimeSlotScreen: React.FC = () => {
                   disabled={!available}
                   onPress={() => {
                     setSelectedSlot(time);
-                    navigation.navigate('Booking' as never, { serviceId, barberId, timeSlot: time } as never);
+                    navigation.navigate('BookingSummary', {
+                      serviceId,
+                      barberId,
+                      date: selectedDate.toISOString(),
+                      timeSlot: time,
+                    });
                   }}
                 >
                   <Text

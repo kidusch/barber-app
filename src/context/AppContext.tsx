@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
 import { User, Barber, Service, AppointmentDetails } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AppContextType {
   user: User | null;
@@ -13,11 +14,12 @@ interface AppContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshAppointments: () => Promise<void>;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -46,15 +48,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const checkAuth = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (token) {
+        const userProfile = await api.getCurrentUser();
+        setUser(userProfile);
+        await refreshAppointments();
+      }
+    } catch (err) {
+      console.error('Auth check failed:', err);
+      await AsyncStorage.removeItem('token');
+      setUser(null);
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
       setError(null);
-      const userData = await api.login(email, password);
-      setUser(userData);
-      if (userData) {
-        await refreshAppointments();
-      }
+      const loginResponse = await api.login(email, password);
+      await AsyncStorage.setItem('token', loginResponse.token);
+
+      // Fetch user profile after login
+      const userProfile = await api.getCurrentUser();
+      setUser(userProfile);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       throw err;
@@ -63,9 +81,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setAppointments([]);
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      setUser(null);
+      setAppointments([]);
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
   };
 
   const refreshAppointments = async () => {
@@ -91,7 +114,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     api,
     login,
     logout,
-    refreshAppointments
+    refreshAppointments,
+    setUser,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

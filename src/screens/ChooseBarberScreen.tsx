@@ -20,17 +20,22 @@ export const ChooseBarberScreen: React.FC = () => {
       setError(null);
       try {
         const api = new ApiService();
-        const response = await api.getBarbers();
-        // The backend returns { barbers: [...] } or just an array
+        const response: any = await api.getBarbers();
         if (Array.isArray(response)) {
-          setBarbers(response);
+          setBarbers(response as Barber[]);
         } else if (response && Array.isArray(response.barbers)) {
-          setBarbers(response.barbers);
+          setBarbers(response.barbers as Barber[]);
         } else {
           setBarbers([]);
         }
       } catch (err: any) {
-        setError('Failed to fetch barbers');
+        if (err instanceof Error) {
+          console.error('Failed to fetch barbers:', err.message, err);
+          setError('Failed to fetch barbers: ' + err.message);
+        } else {
+          console.error('Unknown error fetching barbers:', err);
+          setError('Unknown error fetching barbers');
+        }
       } finally {
         setLoading(false);
       }
