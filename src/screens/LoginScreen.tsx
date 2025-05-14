@@ -15,7 +15,7 @@ import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS } from '../constants/theme';
 import type { RootStackScreenProps, RootStackParamList } from '../types/navigation';
 import { useApp } from '../context/AppContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, CommonActions } from '@react-navigation/native';
 
 type Props = RootStackScreenProps<'Login'>;
 
@@ -44,7 +44,12 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       if (redirectTo && bookingParams) {
         navigation.replace(redirectTo, bookingParams);
       } else {
-        navigation.navigate('Main');
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Main' }],
+          })
+        );
       }
     } catch (err) {
       console.log('Login error:', err);

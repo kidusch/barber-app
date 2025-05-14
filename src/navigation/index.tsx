@@ -23,6 +23,7 @@ import { MonCompteScreen } from '../screens/MonCompteScreen';
 import BookingSummaryScreen from '../screens/BookingSummaryScreen';
 import BookingSuccessScreen from '../screens/BookingSuccessScreen';
 import ActiveAppointmentsScreen from '../screens/ActiveAppointmentsScreen';
+import ModifyAppointmentScreen from '../screens/ModifyAppointmentScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -107,6 +108,7 @@ export const Navigation = () => {
       <Stack.Screen name="BookingSummary" component={BookingSummaryScreen} options={{ headerShown: true, title: 'Résumé de la réservation' }} />
       <Stack.Screen name="BookingSuccess" component={BookingSuccessScreen} options={{ headerShown: true, title: 'Succès de la réservation', headerBackVisible: false }} />
       <Stack.Screen name="ActiveAppointments" component={ActiveAppointmentsScreen} options={{ headerShown: true, title: 'Rendez-vous actifs' }} />
+      <Stack.Screen name="ModifyAppointment" component={ModifyAppointmentScreen} options={{ headerShown: true, title: 'Modifier le rendez-vous' }} />
       <Stack.Screen name="Auth" component={AuthNavigator} />
       <Stack.Screen name="MonCompte" component={MonCompteScreen} options={{ headerShown: true, title: 'Mon compte' }} />
     </Stack.Navigator>

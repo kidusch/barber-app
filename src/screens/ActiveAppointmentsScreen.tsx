@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { ApiService } from '../services/api';
+import { useApp } from '../context/AppContext';
 
 interface Appointment {
   id: string;
@@ -12,38 +15,80 @@ interface Appointment {
   price: number;
 }
 
-const placeholderAppointments: Appointment[] = [
-  {
-    id: '1',
-    service: 'Haircut',
-    barber: 'Michael Brown',
-    date: '2025-05-19',
-    startTime: '13:30',
-    endTime: '14:00',
-    price: 25,
-  },
-  {
-    id: '2',
-    service: 'Beard Trim',
-    barber: 'Sarah Lee',
-    date: '2025-05-22',
-    startTime: '10:00',
-    endTime: '10:30',
-    price: 15,
-  },
-];
-
 const ActiveAppointmentsScreen = () => {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigation = useNavigation();
+  const { user } = useApp();
+
+  console.log('ActiveAppointmentsScreen rendered, user:', user);
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setAppointments(placeholderAppointments);
-      setLoading(false);
-    }, 800);
-  }, []);
+    console.log('Effect triggered, user:', user);
+    const fetchAppointments = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        console.log('user:', user);
+        const api = new ApiService();
+        let data;
+        if (user?.id) {
+          console.log('About to call api.getAppointments()');
+          data = await api.getAppointments();
+          console.log('api.getAppointments() returned', data);
+        } else {
+          setAppointments([]);
+          setLoading(false);
+          return;
+        }
+        if (Array.isArray(data)) {
+          setAppointments(data);
+          console.log('Fetched appointments (array):', data);
+        } else if (data && typeof data === 'object' && 'appointments' in data && Array.isArray((data as any).appointments)) {
+          setAppointments((data as any).appointments);
+          console.log('Fetched appointments (object.appointments):', (data as any).appointments);
+        } else {
+          setAppointments([]);
+          console.log('Fetched appointments: [] or unexpected structure', data);
+        }
+      } catch (err: any) {
+        console.log('Error fetching appointments:', err, err?.stack);
+        setError(err.message || 'Erreur lors du chargement');
+      } finally {
+        setLoading(false);
+      }
+    };
+    try {
+      if (user?.id) fetchAppointments();
+    } catch (e) {
+      console.log('Top-level error in useEffect:', e, (e as any)?.stack);
+    }
+  }, [user?.id]);
+
+  const handleCancel = (id: string) => {
+    // Show confirmation dialog
+    Alert.alert(
+      'Annuler le rendez-vous',
+      'Êtes-vous sûr de vouloir annuler ce rendez-vous ?',
+      [
+        { text: 'Non', style: 'cancel' },
+        {
+          text: 'Oui',
+          style: 'destructive',
+          onPress: () => {
+            // Placeholder: remove from list
+            setAppointments((prev) => prev.filter((a) => a.id !== id));
+            // TODO: Call backend to cancel
+          },
+        },
+      ]
+    );
+  };
+
+  const handleModify = (id: string) => {
+    (navigation as any).navigate('ModifyAppointment', { appointmentId: id });
+  };
 
   return (
     <View style={styles.container}>
@@ -63,19 +108,19 @@ const ActiveAppointmentsScreen = () => {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.rowBetween}>
-                <Text style={styles.service}>{item.service}</Text>
-                <Text style={styles.price}>{item.price}€</Text>
+                <Text style={styles.service}>{item.service?.name}</Text>
+                <Text style={styles.price}>{item.service?.price}€</Text>
               </View>
-              <Text style={styles.barber}>Coiffeur: {item.barber}</Text>
+              <Text style={styles.barber}>Coiffeur: {item.barber?.firstName} {item.barber?.lastName}</Text>
               <View style={styles.rowBetween}>
                 <Text style={styles.date}>{formatDate(item.date)}</Text>
                 <Text style={styles.time}>{item.startTime} - {item.endTime}</Text>
               </View>
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.modifyButton} onPress={() => {}}>
+                <TouchableOpacity style={styles.modifyButton} onPress={() => handleModify(item.id)}>
                   <Text style={styles.modifyButtonText}>Modifier</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelButton} onPress={() => {}}>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => handleCancel(item.id)}>
                   <Text style={styles.cancelButtonText}>Annuler</Text>
                 </TouchableOpacity>
               </View>

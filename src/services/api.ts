@@ -104,6 +104,8 @@ export class ApiService {
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
     let response = await fetch(url, options);
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
     if (response.status === 401 && retry) {
       // Try to refresh token
       const newToken = await this.refreshTokenIfNeeded();
@@ -143,10 +145,24 @@ export class ApiService {
   }
 
   // Appointments
-  async getAppointments(userId: string): Promise<AppointmentDetails[]> {
-    const response = await this.fetchWithAuthRetry(`${API_BASE_URL}/api/appointments?userId=${userId}`);
+  async getAppointments(): Promise<AppointmentDetails[]> {
+    const response = await this.fetchWithAuthRetry(`${API_BASE_URL}/api/appointments`);
+    console.log('getAppointments: raw response', response);
+    console.log('getAppointments: status', response.status);
+    console.log('getAppointments: headers', response.headers);
     if (!response.ok) throw new Error('Failed to fetch appointments');
-    return response.json();
+    let data;
+    try {
+      data = await response.json();
+      console.log('getAppointments: parsed data', data);
+    } catch (e) {
+      console.log('getAppointments: error parsing JSON', e);
+      throw e;
+    }
+    if (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && 'appointments' in data && Array.isArray(data.appointments) && data.appointments.length === 0)) {
+      console.log('getAppointments: No appointments found or unexpected data structure', data);
+    }
+    return data;
   }
 
   async createAppointment(appointment: {
@@ -173,6 +189,22 @@ export class ApiService {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
+    });
+    if (!response.ok) throw new Error('Failed to update appointment');
+    return response.json();
+  }
+
+  async getAppointmentById(id: string): Promise<any> {
+    const response = await this.fetchWithAuthRetry(`${API_BASE_URL}/api/appointments/${id}`);
+    if (!response.ok) throw new Error('Failed to fetch appointment details');
+    return response.json();
+  }
+
+  async updateAppointmentDetails(id: string, data: { startTime: string; endTime: string }): Promise<any> {
+    const response = await this.fetchWithAuthRetry(`${API_BASE_URL}/api/appointments/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to update appointment');
     return response.json();

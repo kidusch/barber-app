@@ -21,6 +21,7 @@ export type RootStackParamList = {
   MonCompte: undefined;
   BookingSuccess: { service: { name: string; price: number }; barber: { firstName: string; lastName: string }; date: string; startTime: string; endTime: string };
   ActiveAppointments: undefined;
+  ModifyAppointment: { appointmentId: string };
 };
 
 export type MainTabParamList = {
